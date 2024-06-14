@@ -1,6 +1,6 @@
 from sqlite3 import IntegrityError
 
-from sqlite_connector import SQLiteConnector
+from mysql_connector import MySQLConnector
 
 
 class User:
@@ -16,9 +16,11 @@ class User:
         # with SQLiteConnector() as con:
         #     con.cursor.execute("")
         #     con.commit()
-        con = SQLiteConnector()
+        con = MySQLConnector()
         try:
-            con.cursor.execute(f"INSERT INTO users (username, password, email) VALUES ('{self._username}', '{self._password}', '{self._email}')")
+            con.cursor.execute("SELECT COUNT(*) FROM users")
+            cnt = con.cursor.fetchall()[0][0]
+            con.cursor.execute(f"INSERT INTO users (id, username, password, email) VALUES ({cnt}, '{self._username}', '{self._password}', '{self._email}')")
             con.commit()
         except IntegrityError:
             print(f'Користувач з іменем "{self._username}" вже існує!')
@@ -28,7 +30,7 @@ class User:
         """Перевіряє, чи існує користувач з вказаним username та password у базі даних.
         Повертає True, якщо такий користувач існує, і False в іншому випадку."""
 
-        con = SQLiteConnector()
+        con = MySQLConnector()
         con.cursor.execute(f"SELECT COUNT(*) FROM users WHERE username='{username}' AND password='{password}'")
         r = con.cursor.fetchall()
         # print(r[0][0])
@@ -37,7 +39,7 @@ class User:
 
     @staticmethod
     def show_all():
-        con = SQLiteConnector()
+        con = MySQLConnector()
         con.cursor.execute(f"SELECT username, password, email FROM users")
         r = con.cursor.fetchall()
         del con
