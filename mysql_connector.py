@@ -1,10 +1,14 @@
 import mysql.connector
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class MySQLConnector:
     # __cursor:sqlite3.Cursor
 
-    def __init__(self, host: str = 'localhost', user: str = 'root', password: str = 'qwerty', db_name: str = 'hw_6_db'):
+    def __init__(self, host: str = 'localhost', user: str = 'root', password: str = os.getenv('mysql_password'), db_name: str = 'hw_6_db'):
         self.__connection = mysql.connector.connect(
             host=host,
             user=user,
