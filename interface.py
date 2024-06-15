@@ -49,7 +49,6 @@ def add_email():
         print('Пошта невалідна. Будь-ласка спробуйте ще раз.\n\tЕлектронна адреса має складатися з латинських літер та цифр, мфти комерційну ет та крапку\n\tПустий рядок скасує реєстрацію.')
 
 
-# TODO checks and catches
 @menu.add_handler('1', 'Зареєструватися')
 def menu_register():
     """Якщо користувач обирає зареєструватися, програма має
@@ -90,16 +89,19 @@ def menu_add_login():
 
     website = input('Введіть адресу сайту: ')
     username = input("Введіть ім'я користувача: ")
-    password = input('Введіть пароль: ')
+    password = None
 
     print('Вхід за допомогою:')
     for cmd, desc in SiteLogin.auth_types.items():
         print(f'{cmd} - {desc}')
     auth_type_key = input('Введіть ресурс інтеграції або залиште пустим: ')
-# todo check why always None
     auth_type = SiteLogin.auth_types.get(auth_type_key)
+
     if auth_type == 'Other':
         auth_type = input('Вкажіть ресурс, за яким відбуваєтсья вхід: ')
+
+    if auth_type is None:
+        password = input('Введіть пароль: ')
 
     auth = SiteLogin(menu._user)
     auth.save(website, username, password, auth_type)
