@@ -60,6 +60,12 @@ class User:
         del con
         return r
 
+    def get_id(self):
+        return self._id
+
+    def get_username(self):
+        return self._username
+
 
 if __name__ == '__main__':
     user1 = User('uname1', 'qwerty', 'qwerty@ex.com')

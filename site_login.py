@@ -1,7 +1,3 @@
-"""
-Єдине, що слід передбачити це те, якщо людина до єднуються до сайту ще раз спеціальний вид входу,
-то про логін та пароль питати не треба.
-"""
 from mysql.connector import IntegrityError
 from mysql_connector import MySQLConnector
 from user import User
@@ -12,7 +8,7 @@ class SiteLogin:
         '1': 'Google',
         '2': 'Apple',
         '3': 'Facebook',
-        '0': 'Other', # todo specify it
+        '0': 'Other',
     }
 
     def __init__(self, user: User):
@@ -21,19 +17,13 @@ class SiteLogin:
     def save(self, website, username, password, auth_type):
         con = MySQLConnector()
         try:
-            # todo add validation
-            # todo add check on duplicating
-            # con.cursor.execute(f'SELECT COUNT(*) FROM users WHERE username = "{self._username}"')
-            # cnt = con.cursor.fetchall()[0][0]
-            # if cnt:
-            #     raise IntegrityError
-            #
-            # con.cursor.execute(f'SELECT COUNT(*) FROM users WHERE email = "{self._email}"')
-            # cnt = con.cursor.fetchall()[0][0]
-            # if cnt:
-            #     raise ValueError
+            con.cursor.execute(f'SELECT COUNT(*) FROM sitelogins '
+                               f'WHERE website = "{website}" AND username = "{username}" AND auth_type = "{auth_type}"')
+            cnt = con.cursor.fetchall()[0][0]
+            if cnt:
+                raise IntegrityError
 
-            user = self._user._id  # todo clear using protected field
+            user = self._user.get_id()
 
             con.cursor.execute("SELECT COUNT(*) FROM sitelogins")
             cnt = con.cursor.fetchall()[0][0]
@@ -42,14 +32,12 @@ class SiteLogin:
                                f"VALUES ({cnt}, '{user}', '{website}', '{username}', '{password}', '{auth_type}')")
             con.commit()
         except IntegrityError:
-            print(f'Користувач з іменем "{user}" вже існує!')
-        except ValueError:
-            print(f'Користувач з поштою "{user}" вже існує!')
+            print(f'Користувач з іменем "{username}" на сайті "{website}" вже існує!')
         del con
 
     def show_all(self):
         con = MySQLConnector()
-        con.cursor.execute(f"SELECT website, username, password, type FROM sitelogins WHERE user={self._user._id}")
+        con.cursor.execute(f"SELECT website, username, password, type FROM sitelogins WHERE user={self._user.get_id()}")
         r = con.cursor.fetchall()
         del con
         return r
