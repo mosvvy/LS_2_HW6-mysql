@@ -48,8 +48,28 @@ def create_table_user():
     del con
 
 
+def create_table_site_logins():
+    con = MySQLConnector()
+
+    con.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS `SiteLogins`(
+        id integer UNIQUE,
+        user integer NOT NULL,
+        website text NOT NULL,
+        username text NOT NULL,
+        password text NOT NULL,
+        type text NOT NULL,
+        PRIMARY KEY (id),
+        FOREIGN KEY (user) REFERENCES Users(id)
+        );
+        """)
+
+    del con
+
+
 if __name__ == '__main__':
     # create_table_user()
+    # create_table_site_logins()
 
     con = MySQLConnector()
 

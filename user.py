@@ -6,6 +6,7 @@ from mysql_connector import MySQLConnector
 class User:
     def __init__(self, username, password, email=None):
         """Ініціалізує нового користувача з переданими username, password та email."""
+        self._id = None
         self._username = username
         self._password = password
         self._email = email
@@ -44,10 +45,11 @@ class User:
         Повертає True, якщо такий користувач існує, і False в іншому випадку."""
 
         con = MySQLConnector()
-        con.cursor.execute(f"SELECT COUNT(*) FROM users WHERE username='{username}' AND password='{password}'")
+        con.cursor.execute(f"SELECT id FROM users WHERE username='{username}' AND password='{password}'")
         r = con.cursor.fetchall()
         # print(r[0][0])
         del con
+        self._id = r[0][0]
         return bool(r[0][0])
 
     @staticmethod
@@ -57,6 +59,12 @@ class User:
         r = con.cursor.fetchall()
         del con
         return r
+
+    def get_id(self):
+        return self._id
+
+    def get_username(self):
+        return self._username
 
 
 if __name__ == '__main__':

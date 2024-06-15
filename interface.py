@@ -1,18 +1,29 @@
 import re
 
+from site_login import SiteLogin
 from user import User
 
 
 class Menu:
+    _user: User | None
+
     def __init__(self):
         self.__menu_items = {}
+        self._user = None
 
     def __get_choice(self):
         print()
+        print(f'Ви увійшли як {self._user.get_username()}.' if self._user else 'Привіт, Гість!')
         for cmd, (_, description) in self.__menu_items.items():
             print(f'{cmd} - {description}')
 
         return input('Введіть номер дії: ')
+
+    def set_user(self, user: User):
+        self._user = user
+
+    def get_user(self):
+        return self._user
 
     def add_handler(self, cmd, description):
         def wrapper(func):
@@ -40,10 +51,11 @@ def add_email():
             break
         if re.match(pattern, value):
             return value
-        print('Пошта невалідна. Будь-ласка спробуйте ще раз.\n\tЕлектронна адреса має складатися з латинських літер та цифр, мфти комерційну ет та крапку\n\tПустий рядок скасує реєстрацію.')
+        print('Пошта невалідна. Будь-ласка спробуйте ще раз.\n\t'
+              'Електронна адреса має складатися з латинських літер та цифр, мфти комерційну ет та крапку\n\t'
+              'Пустий рядок скасує реєстрацію.')
 
 
-# TODO checks and catches
 @menu.add_handler('1', 'Зареєструватися')
 def menu_register():
     """Якщо користувач обирає зареєструватися, програма має
@@ -69,13 +81,59 @@ def menu_login():
     new_user = User(username, password)
     login_result = new_user.login(username, password)
     if login_result:
+        menu.set_user(new_user)
         print('Успішний вхід!')
     else:
         print('Неправильні дані!')
     return True
 
 
-@menu.add_handler('3', 'Вийти')
+@menu.add_handler('3', 'Додати параметри входу')
+def menu_add_login():
+    if menu.get_user() is None:
+        print('Увійдіть в систему будь-ласка.')
+        return True
+
+    website = input('Введіть адресу сайту: ')
+    username = input("Введіть ім'я користувача: ")
+    password = None
+
+    print('Вхід за допомогою:')
+    for cmd, desc in SiteLogin.auth_types.items():
+        print(f'{cmd} - {desc}')
+    auth_type_key = input('Введіть ресурс інтеграції або залиште пустим: ')
+    auth_type = SiteLogin.auth_types.get(auth_type_key)
+
+    if auth_type == 'Other':
+        auth_type = input('Вкажіть ресурс, за яким відбуваєтсья вхід: ')
+
+    if auth_type is None:
+        password = input('Введіть пароль: ')
+
+    auth = SiteLogin(menu.get_user())
+    auth.save(website, username, password, auth_type)
+
+    return True
+
+
+@menu.add_handler('4', 'Переглянути збережені параметри входу')
+def menu_show_logins():
+    if menu.get_user() is None:
+        print('Увійдіть в систему будь-ласка.')
+        return True
+
+    auth = SiteLogin(menu.get_user())
+
+    pattern = '{:>20} | {:<20} | {:<20} | {}'
+    print(pattern.format('website', 'username', 'password', 'type'))
+    print(pattern.format('-' * 20, '-' * 20, '-' * 20, '-' * 20))
+    for user in auth.show_all():
+        print(pattern.format(user[0], user[1], user[2], user[3]))
+
+    return True
+
+
+@menu.add_handler('5', 'Вийти')
 def menu_exit():
     """Якщо користувач обирає вийти, програма має завершити роботу."""
     return False
@@ -86,7 +144,7 @@ def menu_show_all():
     """Допоміжна функція, що виводить інформацію про найвних користувачів."""
     pattern = '{:>20} | {:<20} | {}'
     print(pattern.format('username', 'password', 'email'))
-    print(pattern.format('-'*20, '-'*20, '-'*20))
+    print(pattern.format('-' * 20, '-' * 20, '-' * 20))
     for user in User.show_all():
         print(pattern.format(user[0], user[1], user[2]))
     return True
