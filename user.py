@@ -6,6 +6,7 @@ from mysql_connector import MySQLConnector
 class User:
     def __init__(self, username, password, email=None):
         """Ініціалізує нового користувача з переданими username, password та email."""
+        self._id = None
         self._username = username
         self._password = password
         self._email = email
@@ -29,9 +30,9 @@ class User:
                 raise ValueError
 
             con.cursor.execute("SELECT COUNT(*) FROM users")
-            cnt = con.cursor.fetchall()[0][0]
+            self._id = con.cursor.fetchall()[0][0]
 
-            con.cursor.execute(f"INSERT INTO users (id, username, password, email) VALUES ({cnt}, '{self._username}', '{self._password}', '{self._email}')")
+            con.cursor.execute(f"INSERT INTO users (id, username, password, email) VALUES ({self._id}, '{self._username}', '{self._password}', '{self._email}')")
             con.commit()
         except IntegrityError:
             print(f'Користувач з іменем "{self._username}" вже існує!')
