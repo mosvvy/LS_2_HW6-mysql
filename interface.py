@@ -11,6 +11,7 @@ class Menu:
 
     def __get_choice(self):
         print()
+        print(f'Ви увійшли як {self._user._username}.' if self._user else 'Привіт, Гість!')
         for cmd, (_, description) in self.__menu_items.items():
             print(f'{cmd} - {description}')
 
