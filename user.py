@@ -18,12 +18,25 @@ class User:
         #     con.commit()
         con = MySQLConnector()
         try:
+            con.cursor.execute(f'SELECT COUNT(*) FROM users WHERE username = "{self._username}"')
+            cnt = con.cursor.fetchall()[0][0]
+            if cnt:
+                raise IntegrityError
+
+            con.cursor.execute(f'SELECT COUNT(*) FROM users WHERE email = "{self._email}"')
+            cnt = con.cursor.fetchall()[0][0]
+            if cnt:
+                raise ValueError
+
             con.cursor.execute("SELECT COUNT(*) FROM users")
             cnt = con.cursor.fetchall()[0][0]
+
             con.cursor.execute(f"INSERT INTO users (id, username, password, email) VALUES ({cnt}, '{self._username}', '{self._password}', '{self._email}')")
             con.commit()
         except IntegrityError:
             print(f'Користувач з іменем "{self._username}" вже існує!')
+        except ValueError:
+            print(f'Користувач з поштою "{self._email}" вже існує!')
         del con
 
     def login(self, username, password):
