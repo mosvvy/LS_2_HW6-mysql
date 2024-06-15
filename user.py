@@ -30,9 +30,9 @@ class User:
                 raise ValueError
 
             con.cursor.execute("SELECT COUNT(*) FROM users")
-            self._id = con.cursor.fetchall()[0][0]
+            cnt = con.cursor.fetchall()[0][0]
 
-            con.cursor.execute(f"INSERT INTO users (id, username, password, email) VALUES ({self._id}, '{self._username}', '{self._password}', '{self._email}')")
+            con.cursor.execute(f"INSERT INTO users (id, username, password, email) VALUES ({cnt}, '{self._username}', '{self._password}', '{self._email}')")
             con.commit()
         except IntegrityError:
             print(f'Користувач з іменем "{self._username}" вже існує!')
@@ -45,10 +45,11 @@ class User:
         Повертає True, якщо такий користувач існує, і False в іншому випадку."""
 
         con = MySQLConnector()
-        con.cursor.execute(f"SELECT COUNT(*) FROM users WHERE username='{username}' AND password='{password}'")
+        con.cursor.execute(f"SELECT id FROM users WHERE username='{username}' AND password='{password}'")
         r = con.cursor.fetchall()
         # print(r[0][0])
         del con
+        self._id = r[0][0]
         return bool(r[0][0])
 
     @staticmethod

@@ -1,11 +1,13 @@
 import re
 
+from site_login import SiteLogin
 from user import User
 
 
 class Menu:
     def __init__(self):
         self.__menu_items = {}
+        self._user = None
 
     def __get_choice(self):
         print()
@@ -13,6 +15,9 @@ class Menu:
             print(f'{cmd} - {description}')
 
         return input('Введіть номер дії: ')
+
+    def set_user(self, user: User):
+        self._user = user
 
     def add_handler(self, cmd, description):
         def wrapper(func):
@@ -69,13 +74,56 @@ def menu_login():
     new_user = User(username, password)
     login_result = new_user.login(username, password)
     if login_result:
+        menu.set_user(new_user)
         print('Успішний вхід!')
     else:
         print('Неправильні дані!')
     return True
 
 
-@menu.add_handler('3', 'Вийти')
+@menu.add_handler('3', 'Додати параметри входу')
+def menu_add_login():
+    if menu._user is None:
+        print('Увійдіть в систему будь-ласка.')
+        return True
+
+    website = input('Введіть адресу сайту: ')
+    username = input("Введіть ім'я користувача: ")
+    password = input('Введіть пароль: ')
+
+    print('Вхід за допомогою:')
+    for cmd, desc in SiteLogin.auth_types.items():
+        print(f'{cmd} - {desc}')
+    auth_type_key = input('Введіть ресурс інтеграції або залиште пустим: ')
+# todo check why always None
+    auth_type = SiteLogin.auth_types.get(auth_type_key)
+    if auth_type == 'Other':
+        auth_type = input('Вкажіть ресурс, за яким відбуваєтсья вхід: ')
+
+    auth = SiteLogin(menu._user)
+    auth.save(website, username, password, auth_type)
+
+    return True
+
+
+@menu.add_handler('4', 'Переглянути збережені параметри входу')
+def menu_show_logins():
+    if menu._user is None:
+        print('Увійдіть в систему будь-ласка.')
+        return True
+
+    auth = SiteLogin(menu._user)
+
+    pattern = '{:>20} | {:<20} | {:<20} | {}'
+    print(pattern.format('website', 'username', 'password', 'type'))
+    print(pattern.format('-' * 20, '-' * 20, '-' * 20, '-' * 20))
+    for user in auth.show_all():
+        print(pattern.format(user[0], user[1], user[2], user[3]))
+
+    return True
+
+
+@menu.add_handler('5', 'Вийти')
 def menu_exit():
     """Якщо користувач обирає вийти, програма має завершити роботу."""
     return False
